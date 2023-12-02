@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>classpaper</title>
+  <style>
+    /* 在这里添加样式来设置背景 */
+    body {
+      background-size: cover;
+      background-position: center;
+      transition: background-image 1s ease-in-out;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width:100vw
+    }
+
+    h1 {
+      font-size: 36px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    #content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      //max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #timeContainer, #sthContent, #eventCountdown {
+      margin: 10px;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.7);
+      border-radius: 10px;
+      width: auto;
+      font-size: 30px;
+     white-space: pre-line; /* 允许文本根据需要换行 */
+    }
+
+
+
+#lessonSchedule {
+  display: flex;
+  align-content: flex-start;
+  justify-content: space-between;
+  width: 98vw;
+  flex-direction: row; /* 将课表横置排列 */
+  margin: 10px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  //margin-left: auto;
+}
+
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid #fff;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .currentEvent {
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      font-size: 24px;
+      border-radius: 10px;
+    }
+
+    #currentDateTime {
+      font-size: 28px;
+      margin-top: 20px;
+    }
+
+.lesson-list {
+  display: flex;
+  flex-direction: row; /* 将课程列表横置排列 */
+  //flex-wrap: wrap; /* 如果需要，使课程列表自动换行 */
+}
+
+.lesson-item {
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.2);
+  margin: 5px;
+  border-radius: 5px;
+  font-size: 30px;
+  color: #fff;
+}
+
+#topBar {
+  //background-color: rgba(0, 0, 0, 0.7);
+  //padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+ right:0;
+  //width: 98vw;
+  //z-index: 1; /* 确保顶栏位于其他内容之上 */
+}
+
+
+  </style>
+</head>
+<body>
+
+<div id="topBar">
+  <div id="lessonSchedule"></div>
+</div>
+
+<!-- 显示时间 -->
+  <div id="timeContainer">
+    <div id="currentDateTime"></div>
+  </div>
+
+  <!-- 直接显示sth.js中的内容 -->
+  <div id="sthContent"></div>
+
+  <!-- 显示事件倒计时 -->
+  <div id="eventCountdown"></div>
+
+
+
+  <script src="config/events.js"></script>
+  <script src="config/sth.js"></script>
+  <script src="config/lessons.js"></script>
+  <script src="config/wallpaperlist.js"></script>
+
+  <script>
+
+    // 解析events字符串并计算事件倒计时
+    var eventsString = events;
+    var events1 = eventsString.split('\n').map(event2 => {
+      const [eventName, eventDate] = event2.split(',');
+      return { event: eventName.trim(), date: eventDate.trim() };
+    });
+
+    // 计算并显示事件倒计时
+    function updateEventCountdown() {
+      const today = new Date();
+      for (const event2 of events1) {
+        const eventDate = new Date(event2.date);
+        const timeDiff = eventDate - today;
+        if (timeDiff >= 0) {
+          // 计算倒计时并更新 #eventCountdown 元素
+          const countdownText = `距离事件 "${event2.event}" 还有 ${Math.floor(timeDiff / (1000 * 60 * 60 * 24))} 天`;
+          document.getElementById('eventCountdown').innerHTML += countdownText+"\n";
+          //break; // 显示第一个未来事件
+        }
+      }
+    }
+
+    // 直接显示sth.js中的内容
+    document.getElementById('sthContent').innerHTML = sth;
+
+function generateCourseArray(scheduleText) {
+  // 解析文本为行数组
+  const lines = scheduleText.split('\n');
+
+  // 获取当前日期的星期几（0 表示周日，1 表示周一，以此类推）
+  const currentDay = new Date().getDay();
+
+  // 根据当前日期确定今天的课程
+  const todayCourses = lines[currentDay!=0 ? (currentDay-1) : 6].split(',');
+
+  // 去除数组中的空格和无关项
+  const filteredCourses = todayCourses.filter(course => course.trim() !== '无');
+
+  return filteredCourses;
+}
+
+// 逐个显示课表子项
+function displayLessonSchedule() {
+  var lesons=generateCourseArray(lessons);
+  const lessonSchedule = document.getElementById('lessonSchedule');
+  lessonSchedule.innerHTML = '<h2>课表</h2>';
+  const lessonList = document.createElement('div'); // 创建一个新的 div 容器
+  lessonList.className = 'lesson-list'; // 添加课程列表的样式类
+  for (const lesson of lesons) {
+    const lessonItem = document.createElement('div'); // 创建每个课程项的 div 元素
+    lessonItem.className = 'lesson-item'; // 添加课程项的样式类
+    lessonItem.textContent = lesson;
+    lessonList.appendChild(lessonItem); // 将课程项添加到课程列表中
+  }
+  lessonSchedule.appendChild(lessonList); // 将课程列表添加到课表容器中
+}
+
+
+function displayCurrentDateTime() {
+  const now = new Date();
+
+  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // 月份从0开始，所以要加1
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  const weekday = weekdays[now.getDay()];
+  
+const dateTimeText = `   ${hours}:${minutes}:${seconds} ${weekday}    \n${year}年${month}月${day}日`;
+
+  document.getElementById('currentDateTime').textContent = dateTimeText;
+}
+
+
+
+    // 初始化页面
+    updateEventCountdown();
+    displayLessonSchedule();
+    displayCurrentDateTime();
+    setInterval(displayCurrentDateTime, 1000); // 每1秒切换一次
+
+    // 切换背景图片
+    var wallpaperIndex = 0;
+    function changeBackground() {
+      wallpaperIndex = (wallpaperIndex + 1) % wallpaperlist.length;
+      document.body.style.backgroundImage = `url('${wallpaperlist[wallpaperIndex]}')`;
+    }
+    changeBackground();
+    // 设置定时器每隔一段时间切换背景图片
+    setInterval(changeBackground, 10000); // 每10秒切换一次
+
+  </script>
+</body>
+</html>
